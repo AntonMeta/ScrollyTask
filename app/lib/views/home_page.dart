@@ -11,11 +11,11 @@ class HomePage extends StatelessWidget {
     final timerService = context.watch<TimerService>();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Focus Timer', style: TextStyle(color: Colors.black)),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Center(
