@@ -82,23 +82,46 @@ class TimerService extends ChangeNotifier {
   }
 
   double getWeeklyAverage(DateTime startOfWeek) {
+    final DateTime? firstEntry = getOldestEntryDate();
+    if (firstEntry == null) return 0.0;
+
+    final firstDayMidnight = DateTime(
+      firstEntry.year,
+      firstEntry.month,
+      firstEntry.day,
+    );
+    final now = DateTime.now();
+    final todayMidnight = DateTime(now.year, now.month, now.day);
+
     int totalSeconds = 0;
-    int daysWithData = 0;
+    int validDaysCount = 0;
 
     for (int i = 0; i < 7; i++) {
-      final date = startOfWeek.add(Duration(days: i));
-      final key = _getDateKey(date);
+      final currentDay = startOfWeek.add(Duration(days: i));
+      final currentDayMidnight = DateTime(
+        currentDay.year,
+        currentDay.month,
+        currentDay.day,
+      );
 
-      if (_box.containsKey(key)) {
-        final int seconds = _box.get(key, defaultValue: 0);
-        totalSeconds += seconds;
-        daysWithData++;
+      if (currentDayMidnight.isAfter(todayMidnight)) {
+        continue;
       }
+
+      if (currentDayMidnight.isBefore(firstDayMidnight)) {
+        continue;
+      }
+
+      final key = _getDateKey(currentDay);
+      final int seconds = _box.get(key, defaultValue: 0);
+
+      totalSeconds += seconds;
+      validDaysCount++;
     }
 
-    if (daysWithData == 0) return 0.0;
+    if (validDaysCount == 0) return 0.0;
 
-    return totalSeconds / daysWithData;
+    return totalSeconds / validDaysCount;
   }
 
   int getDaysCountWithData(DateTime startOfWeek) {
@@ -135,6 +158,52 @@ class TimerService extends ChangeNotifier {
     return minDate;
   }
 
+  int get currentStreak {
+    int streak = 0;
+    final now = DateTime.now();
+
+    if (dailySeconds > 0) {
+      streak++;
+    }
+
+    int daysBack = 1;
+    while (true) {
+      final pastDate = now.subtract(Duration(days: daysBack));
+      final key = _getDateKey(pastDate);
+
+      final int seconds = _box.get(key, defaultValue: 0);
+
+      if (seconds > 0) {
+        streak++;
+        daysBack++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+  int get totalActiveDays {
+    int count = 0;
+    for (var key in _box.keys) {
+      final int seconds = _box.get(key, defaultValue: 0);
+      if (seconds > 0) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  int get totalSeconds {
+    int total = 0;
+    for (var key in _box.keys) {
+      final int seconds = _box.get(key, defaultValue: 0);
+      total += seconds;
+    }
+    return total;
+  }
+
   void debugAddFakeHistory() {
     _box.clear();
 
@@ -146,16 +215,17 @@ class TimerService extends ChangeNotifier {
       _box.put(key, minutes * 60);
     }
 
+    addDay(0, 68);
     addDay(1, 60);
-    addDay(2, 0);
+
     addDay(3, 90);
     addDay(4, 100);
-    addDay(5, 0);
+
     addDay(6, 40);
     addDay(7, 55);
-    addDay(8, 0);
+
     addDay(9, 110);
-    addDay(10, 0);
+    addDay(10, 24 * 60 - 1);
     addDay(11, 110);
     addDay(12, 90);
 

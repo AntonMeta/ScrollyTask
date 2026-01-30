@@ -10,6 +10,9 @@ class StatsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final timerService = context.watch<TimerService>();
 
+    final int streak = timerService.currentStreak;
+    final int totalDays = timerService.totalActiveDays;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -34,7 +37,28 @@ class StatsPage extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
 
-            _SummaryCards(todaySeconds: timerService.dailySeconds),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildCard(
+                    icon: Icons.local_fire_department,
+                    value: "$streak",
+                    label: "Current\ndays streak",
+                    subLabel: "$totalDays days overall",
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildCard(
+                    icon: Icons.access_time_filled,
+                    value: formatSecondsToText(timerService.dailySeconds),
+                    label: "Focus\ntime today",
+                    subLabel:
+                        "${formatGrandTotal(timerService.totalSeconds)} overall",
+                  ),
+                ),
+              ],
+            ),
 
             const SizedBox(height: 40),
 
@@ -42,37 +66,6 @@ class StatsPage extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _SummaryCards extends StatelessWidget {
-  final int todaySeconds;
-
-  const _SummaryCards({required this.todaySeconds});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildCard(
-            icon: Icons.local_fire_department,
-            value: "34",
-            label: "Current\ndays streak",
-            subLabel: "32 days overall",
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildCard(
-            icon: Icons.access_time_filled,
-            value: formatSecondsToText(todaySeconds),
-            label: "Focus\ntime today",
-            subLabel: "3d 15h 32m overall",
-          ),
-        ),
-      ],
     );
   }
 
@@ -452,5 +445,21 @@ String formatSecondsToText(int totalSeconds) {
       return "${hours}h";
     }
     return "${hours}h ${minutes}m";
+  }
+}
+
+String formatGrandTotal(int totalSeconds) {
+  if (totalSeconds == 0) return "0m";
+
+  final int days = totalSeconds ~/ (24 * 3600);
+  final int hours = (totalSeconds % (24 * 3600)) ~/ 3600;
+  final int minutes = (totalSeconds % 3600) ~/ 60;
+
+  if (days > 0) {
+    return "${days}d ${hours}h ${minutes}m";
+  } else if (hours > 0) {
+    return "${hours}h ${minutes}m";
+  } else {
+    return "${minutes}m";
   }
 }
