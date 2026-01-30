@@ -1,86 +1,165 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class TimerService extends ChangeNotifier {
   Timer? _timer;
-  int _dailySeconds = 0;
   bool _isRunning = false;
-  DateTime _lastActiveDate = DateTime.now();
 
-  int get dailySeconds => _dailySeconds;
+  final Box _box = Hive.box('timer_data');
+
+  int get dailySeconds => _getSecondsForDay(DateTime.now());
   bool get isRunning => _isRunning;
 
   String get formattedTime {
-    final hours = (_dailySeconds ~/ 3600).toString().padLeft(2, '0');
-    final minutes = ((_dailySeconds % 3600) ~/ 60).toString().padLeft(2, '0');
-    final seconds = (_dailySeconds % 60).toString().padLeft(2, '0');
-    return "$hours:$minutes:$seconds";
-  }
+    int totalSeconds = dailySeconds;
 
-  TimerService() {
-    _loadData();
-  }
+    int hours = totalSeconds ~/ 3600;
+    int minutes = (totalSeconds % 3600) ~/ 60;
+    int seconds = totalSeconds % 60;
 
-  void toggleTimer() {
-    if (_isRunning) {
-      _stopTimer();
+    if (minutes < 1) {
+      return "${seconds}s";
+    } else if (hours < 1) {
+      return "${minutes}m ${seconds}s";
     } else {
-      _startTimer();
+      return "${hours}h ${minutes}m ${seconds}s";
     }
   }
 
-  void _startTimer() {
-    _checkMidnightReset();
+  void startTimer() {
+    if (_isRunning) return;
     _isRunning = true;
     notifyListeners();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _dailySeconds++;
-      _checkMidnightReset();
-      _saveData();
+      _addSecondToHistory();
+
       notifyListeners();
     });
   }
 
-  void _stopTimer() {
+  void stopTimer() {
     _timer?.cancel();
     _isRunning = false;
-    _saveData();
     notifyListeners();
   }
 
-  Future<void> _saveData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('dailySeconds', _dailySeconds);
-    await prefs.setString('lastActiveDate', DateTime.now().toIso8601String());
+  void toggleTimer() {
+    if (_isRunning) {
+      stopTimer();
+    } else {
+      startTimer();
+    }
   }
 
-  Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lastDateString = prefs.getString('lastActiveDate');
+  void _addSecondToHistory() {
+    final String todayKey = _getDateKey(DateTime.now());
 
-    if (lastDateString != null) {
-      _lastActiveDate = DateTime.parse(lastDateString);
-      if (_isSameDay(_lastActiveDate, DateTime.now())) {
-        _dailySeconds = prefs.getInt('dailySeconds') ?? 0;
-      } else {
-        _dailySeconds = 0;
+    final int currentSeconds = _box.get(todayKey, defaultValue: 0);
+
+    _box.put(todayKey, currentSeconds + 1);
+  }
+
+  int getSecondsForDay(DateTime date) {
+    return _getSecondsForDay(date);
+  }
+
+  int _getSecondsForDay(DateTime date) {
+    final String key = _getDateKey(date);
+    return _box.get(key, defaultValue: 0);
+  }
+
+  String _getDateKey(DateTime date) {
+    return "${date.year}-${date.month}-${date.day}";
+  }
+
+  List<int> getWeeklyData(DateTime startOfWeek) {
+    return List.generate(7, (index) {
+      final date = startOfWeek.add(Duration(days: index));
+      return _getSecondsForDay(date);
+    });
+  }
+
+  double getWeeklyAverage(DateTime startOfWeek) {
+    int totalSeconds = 0;
+    int daysWithData = 0;
+
+    for (int i = 0; i < 7; i++) {
+      final date = startOfWeek.add(Duration(days: i));
+      final key = _getDateKey(date);
+
+      if (_box.containsKey(key)) {
+        final int seconds = _box.get(key, defaultValue: 0);
+        totalSeconds += seconds;
+        daysWithData++;
       }
     }
-    notifyListeners();
+
+    if (daysWithData == 0) return 0.0;
+
+    return totalSeconds / daysWithData;
   }
 
-  void _checkMidnightReset() {
-    final now = DateTime.now();
-    if (!_isSameDay(_lastActiveDate, now)) {
-      _dailySeconds = 0;
-      _lastActiveDate = now;
-      notifyListeners();
+  int getDaysCountWithData(DateTime startOfWeek) {
+    int count = 0;
+    for (int i = 0; i < 7; i++) {
+      final date = startOfWeek.add(Duration(days: i));
+      if (_box.containsKey(_getDateKey(date))) {
+        count++;
+      }
     }
+    return count;
   }
 
-  bool _isSameDay(DateTime d1, DateTime d2) {
-    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
+  DateTime? getOldestEntryDate() {
+    if (_box.isEmpty) return null;
+
+    final keys = _box.keys.cast<String>();
+    DateTime? minDate;
+
+    for (var key in keys) {
+      final parts = key.split('-');
+      if (parts.length == 3) {
+        final date = DateTime(
+          int.parse(parts[0]),
+          int.parse(parts[1]),
+          int.parse(parts[2]),
+        );
+
+        if (minDate == null || date.isBefore(minDate)) {
+          minDate = date;
+        }
+      }
+    }
+    return minDate;
+  }
+
+  void debugAddFakeHistory() {
+    _box.clear();
+
+    final now = DateTime.now();
+
+    void addDay(int daysAgo, int minutes) {
+      final date = now.subtract(Duration(days: daysAgo));
+      final key = _getDateKey(date);
+      _box.put(key, minutes * 60);
+    }
+
+    addDay(1, 60);
+    addDay(2, 0);
+    addDay(3, 90);
+    addDay(4, 100);
+    addDay(5, 0);
+    addDay(6, 40);
+    addDay(7, 55);
+    addDay(8, 0);
+    addDay(9, 110);
+    addDay(10, 0);
+    addDay(11, 110);
+    addDay(12, 90);
+
+    print("✅ Fake dane dodane! Zrestartuj apkę.");
+    notifyListeners();
   }
 }

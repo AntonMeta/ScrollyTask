@@ -21,6 +21,13 @@ class StatsPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     context.read<TimerService>().debugAddFakeHistory();
+      //   },
+      //   backgroundColor: Colors.red,
+      //   child: const Icon(Icons.bug_report),
+      // ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
@@ -60,7 +67,7 @@ class _SummaryCards extends StatelessWidget {
         Expanded(
           child: _buildCard(
             icon: Icons.access_time_filled,
-            value: formatMinutes(todaySeconds ~/ 60),
+            value: formatSecondsToText(todaySeconds),
             label: "Focus\ntime today",
             subLabel: "3d 15h 32m overall",
           ),
@@ -140,15 +147,76 @@ class _SummaryCards extends StatelessWidget {
   }
 }
 
-class _WeeklyChartSection extends StatefulWidget {
+class _WeeklyChartSection extends StatelessWidget {
   const _WeeklyChartSection();
 
   @override
-  State<_WeeklyChartSection> createState() => _WeeklyChartSectionState();
+  Widget build(BuildContext context) {
+    final timerService = context.watch<TimerService>();
+    final oldestDate = timerService.getOldestEntryDate();
+
+    int pageCount = 1;
+
+    if (oldestDate != null) {
+      final now = DateTime.now();
+
+      final currentMondayDate = now.subtract(Duration(days: now.weekday - 1));
+      final currentMonday = DateTime(
+        currentMondayDate.year,
+        currentMondayDate.month,
+        currentMondayDate.day,
+      );
+
+      final oldestMondayDate = oldestDate.subtract(
+        Duration(days: oldestDate.weekday - 1),
+      );
+      final oldestMonday = DateTime(
+        oldestMondayDate.year,
+        oldestMondayDate.month,
+        oldestMondayDate.day,
+      );
+
+      final differenceInDays = currentMonday.difference(oldestMonday).inDays;
+
+      if (differenceInDays >= 0) {
+        final weeksDiff = (differenceInDays / 7).round();
+        pageCount = weeksDiff + 1;
+      }
+    }
+    return Container(
+      height: 328,
+      decoration: BoxDecoration(
+        color: Colors.orange.shade100,
+        borderRadius: BorderRadius.circular(47),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(47),
+        child: PageView.builder(
+          reverse: true,
+          itemCount: pageCount,
+          controller: PageController(initialPage: 0),
+          physics: pageCount > 1
+              ? const BouncingScrollPhysics()
+              : const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            return _SingleWeekPage(weekOffset: index);
+          },
+        ),
+      ),
+    );
+  }
 }
 
-class _WeeklyChartSectionState extends State<_WeeklyChartSection> {
-  final List<int> weeklyData = [15, 45, 120, 100, 60, 30, 0];
+class _SingleWeekPage extends StatefulWidget {
+  final int weekOffset;
+
+  const _SingleWeekPage({required this.weekOffset});
+
+  @override
+  State<_SingleWeekPage> createState() => _SingleWeekPageState();
+}
+
+class _SingleWeekPageState extends State<_SingleWeekPage> {
   final List<String> weekDays = [
     'Mon',
     'Tue',
@@ -163,15 +231,44 @@ class _WeeklyChartSectionState extends State<_WeeklyChartSection> {
 
   @override
   Widget build(BuildContext context) {
-    final String currentTitle = touchedIndex == -1
-        ? "Average focus time\nThis week"
-        : "Focus time\n${_getFullDayName(touchedIndex)}";
+    final timerService = context.watch<TimerService>();
 
-    final double averageVal = _calculateDoubleAverage();
+    final now = DateTime.now();
+    final currentViewDate = now.subtract(Duration(days: 7 * widget.weekOffset));
+    final startOfWeek = currentViewDate.subtract(
+      Duration(days: currentViewDate.weekday - 1),
+    );
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+    final List<int> weeklyData = timerService.getWeeklyData(startOfWeek);
+    final double averageVal = timerService.getWeeklyAverage(startOfWeek);
+
+    final int daysWithDataCount = timerService.getDaysCountWithData(
+      startOfWeek,
+    );
+
+    final bool isCurrentWeek = widget.weekOffset == 0;
+    final bool isLastWeek = widget.weekOffset == 1;
+
+    String titleText;
+    if (isCurrentWeek == isLastWeek) {
+      if (touchedIndex != -1) {
+        titleText =
+            "Focus time\n${_formatDateRange(startOfWeek, endOfWeek)} ${_getFullDayName(touchedIndex)}";
+      } else {
+        titleText =
+            "Average focus time\n${_formatDateRange(startOfWeek, endOfWeek)}";
+      }
+    } else if (touchedIndex != -1) {
+      titleText =
+          "Focus time\n${isLastWeek ? "Last " : ''}${_getFullDayName(touchedIndex)}";
+    } else {
+      titleText = "Average focus time\n${isCurrentWeek ? "This" : "Last"} week";
+    }
 
     final String currentValue = touchedIndex == -1
-        ? formatMinutes(averageVal.round())
-        : formatMinutes(weeklyData[touchedIndex]);
+        ? formatSecondsToText(averageVal.floor())
+        : formatSecondsToText(weeklyData[touchedIndex]);
 
     return GestureDetector(
       onTap: () {
@@ -188,10 +285,9 @@ class _WeeklyChartSectionState extends State<_WeeklyChartSection> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              currentTitle,
+              titleText,
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16,
@@ -216,9 +312,9 @@ class _WeeklyChartSectionState extends State<_WeeklyChartSection> {
                 BarChartData(
                   extraLinesData: ExtraLinesData(
                     horizontalLines: [
-                      if (weeklyData.length > 1)
+                      if (averageVal > 0 && daysWithDataCount > 1)
                         HorizontalLine(
-                          y: averageVal,
+                          y: averageVal / 60,
                           color: Colors.black,
                           strokeWidth: 2,
                           dashArray: [5, 5],
@@ -296,7 +392,7 @@ class _WeeklyChartSectionState extends State<_WeeklyChartSection> {
                       x: index,
                       barRods: [
                         BarChartRodData(
-                          toY: weeklyData[index].toDouble(),
+                          toY: weeklyData[index] / 60,
                           color: index == touchedIndex
                               ? Colors.black
                               : Colors.grey,
@@ -315,12 +411,6 @@ class _WeeklyChartSectionState extends State<_WeeklyChartSection> {
     );
   }
 
-  double _calculateDoubleAverage() {
-    if (weeklyData.isEmpty) return 0;
-    final sum = weeklyData.reduce((a, b) => a + b);
-    return sum / weeklyData.length;
-  }
-
   String _getFullDayName(int index) {
     const days = [
       "Monday",
@@ -333,9 +423,25 @@ class _WeeklyChartSectionState extends State<_WeeklyChartSection> {
     ];
     return days[index];
   }
+
+  String _formatDateRange(DateTime start, DateTime end) {
+    String format(DateTime d) {
+      final day = d.day.toString().padLeft(2, '0');
+      final month = d.month.toString().padLeft(2, '0');
+      return "$day.$month";
+    }
+
+    return "${format(start)}-${format(end)}";
+  }
 }
 
-String formatMinutes(int totalMinutes) {
+String formatSecondsToText(int totalSeconds) {
+  if (totalSeconds > 0 && totalSeconds < 60) {
+    return "<1m";
+  }
+
+  final int totalMinutes = totalSeconds ~/ 60;
+
   if (totalMinutes < 60) {
     return "${totalMinutes}m";
   } else {
