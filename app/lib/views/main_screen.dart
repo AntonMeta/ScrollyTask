@@ -20,12 +20,6 @@ class _MainScreenState extends State<MainScreen> {
   final PageController _pageController = PageController(initialPage: 0);
   int _currentIndex = 0;
 
-  void _onPageChanged(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
   void _onItemTapped(int index) {
     _pageController.animateToPage(
       index,
@@ -37,48 +31,105 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final isRunning = context.watch<TimerService>().isRunning;
+
     return Scaffold(
-      backgroundColor: AppColor.secondary,
+      backgroundColor: Colors.black,
 
       body: Stack(
         children: [
-          AnimatedContainer(
-            duration: AppAnimations.defaultDuration,
-            curve: Curves.easeInOut,
-            margin: isRunning
-                ? const EdgeInsets.only(top: 2.0)
-                : EdgeInsets.zero,
-            decoration: BoxDecoration(
-              color: AppColor.secondary,
-              borderRadius: isRunning
-                  ? BorderRadius.circular(AppDesign.radiusMainScreen)
-                  : BorderRadius.zero,
-              border: isRunning
-                  ? Border.all(color: AppColor.neonBorder, width: 7)
-                  : null,
+          Positioned.fill(
+            child: Container(
+              color: AppColor.pageBg(context),
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (index) => setState(() => _currentIndex = index),
+                children: const [HomePage(), StatsPage()],
+              ),
             ),
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              children: const [HomePage(), StatsPage()],
+          ),
+
+          Positioned(
+            top: 2,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                duration: AppAnimations.defaultDuration,
+                opacity: isRunning ? 1.0 : 0.0,
+                curve: Curves.easeInOut,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(
+                          AppDesign.radiusMainScreen,
+                        ),
+                        border: Border.all(
+                          color: AppColor.neonBorder.withValues(alpha: 0.15),
+                          width: 12.0,
+                          strokeAlign: BorderSide.strokeAlignInside,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(
+                          AppDesign.radiusMainScreen,
+                        ),
+                        border: Border.all(
+                          color: AppColor.neonBorder.withValues(alpha: 0.4),
+                          width: 6.0,
+                          strokeAlign: BorderSide.strokeAlignInside,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(
+                          AppDesign.radiusMainScreen,
+                        ),
+                        border: Border.all(
+                          color: AppColor.neonBorder,
+                          width: 1.5,
+                          strokeAlign: BorderSide.strokeAlignInside,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
 
           Positioned(
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: -1,
             child: Container(
-              height: 87,
+              height: 90,
               decoration: BoxDecoration(
-                color: AppColor.primary,
+                color: AppColor.cardSurface(context),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+                border: AppColor.getAdaptiveBorder(context),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildNavItem(AppAssets.iconHome, 0, "Scrolly"),
-                  _buildNavItem(AppAssets.iconStats, 1, "Statistics"),
+                  _buildNavItem(
+                    asset: AppAssets.iconHome,
+                    index: 0,
+                    label: "Scrolly",
+                  ),
+                  _buildNavItem(
+                    asset: AppAssets.iconStats,
+                    index: 1,
+                    label: "Statistics",
+                  ),
                 ],
               ),
             ),
@@ -88,29 +139,36 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNavItem(String asset, int index, String label) {
+  Widget _buildNavItem({
+    required String asset,
+    required int index,
+    required String label,
+  }) {
     final isSelected = _currentIndex == index;
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            asset,
-            width: 22,
-            colorFilter: ColorFilter.mode(
-              isSelected ? AppColor.navBar : AppColor.secondary,
-              BlendMode.srcIn,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              asset,
+              width: 22,
+              colorFilter: ColorFilter.mode(
+                isSelected ? AppColor.navBar : AppColor.secondary,
+                BlendMode.srcIn,
+              ),
             ),
-          ),
-          Text(
-            label,
-            style: isSelected
-                ? AppTextStyles.navBarActive
-                : AppTextStyles.navBar,
-          ),
-        ],
+            Text(
+              label,
+              style: isSelected
+                  ? AppTextStyles.navBarActive
+                  : AppTextStyles.navBar,
+            ),
+          ],
+        ),
       ),
     );
   }

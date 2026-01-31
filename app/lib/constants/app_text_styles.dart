@@ -6,7 +6,6 @@ class AppTextStyles {
   static TextStyle titleLarge = GoogleFonts.poppins(
     fontSize: 36,
     fontWeight: FontWeight.w700,
-    color: AppColor.primary,
   );
   static TextStyle navBarActive = GoogleFonts.poppins(
     fontSize: 10.65,
@@ -23,7 +22,6 @@ class AppTextStyles {
   static TextStyle homeTimer = GoogleFonts.poppins(
     fontSize: 40,
     fontWeight: FontWeight.w500,
-    color: AppColor.secondary,
   );
   static TextStyle homeLabel = GoogleFonts.poppins(
     fontSize: 18,
@@ -40,52 +38,42 @@ class AppTextStyles {
   static TextStyle darkStatsLabel = GoogleFonts.poppins(
     fontSize: 19,
     fontWeight: FontWeight.w500,
-    color: AppColor.secondary,
   );
   static TextStyle lightStatsLabel = GoogleFonts.poppins(
     fontSize: 19,
     fontWeight: FontWeight.w500,
-    color: AppColor.primary,
   );
   static TextStyle darkStatsVal = GoogleFonts.poppins(
     fontSize: 30,
     fontWeight: FontWeight.w500,
-    color: AppColor.secondary,
   );
   static TextStyle lightStatsVal = GoogleFonts.poppins(
     fontSize: 30,
     fontWeight: FontWeight.w500,
-    color: AppColor.primary,
   );
   static TextStyle darkPill = GoogleFonts.poppins(
     fontSize: 12.28,
     fontWeight: FontWeight.w500,
-    color: AppColor.secondary,
   );
   static TextStyle lightPill = GoogleFonts.poppins(
     fontSize: 12.25,
     fontWeight: FontWeight.w500,
-    color: AppColor.primary,
   );
 
   static TextStyle chartLabel = GoogleFonts.poppins(
     fontSize: 19,
     fontWeight: FontWeight.w500,
-    color: AppColor.primary,
   );
   static TextStyle chartVal = GoogleFonts.poppins(
     fontSize: 22,
     fontWeight: FontWeight.w700,
-    color: AppColor.primary,
   );
   static TextStyle chartAvg = GoogleFonts.poppins(
     fontSize: 12,
     fontWeight: FontWeight.w500,
-    color: AppColor.primary,
   );
   static TextStyle chartWeekday = GoogleFonts.poppins(
     fontSize: 13.14,
     fontWeight: FontWeight.w500,
-    color: AppColor.primary,
   );
 }

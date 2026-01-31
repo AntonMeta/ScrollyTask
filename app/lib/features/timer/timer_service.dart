@@ -31,10 +31,12 @@ class TimerService extends ChangeNotifier
     final int minutes = (totalSeconds % 3600) ~/ 60;
     final int seconds = totalSeconds % 60;
 
-    if (minutes < 1) {
-      return "${seconds}s";
-    } else if (hours < 1) {
-      return "${minutes}m ${seconds}s";
+    if (hours < 1) {
+      if (minutes < 1) {
+        return "${seconds}s";
+      } else {
+        return "${minutes}m ${seconds}s";
+      }
     } else {
       return "${hours}h ${minutes}m ${seconds}s";
     }
@@ -140,10 +142,11 @@ class TimerService extends ChangeNotifier
   }
 
   void toggleTimer() {
-    if (_isRunning)
+    if (_isRunning) {
       stopTimer();
-    else
+    } else {
       startTimer();
+    }
   }
 
   int get totalActiveDays {

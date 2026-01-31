@@ -1,7 +1,6 @@
 // Scrolly Recruitment Kit - Flutter coding challenge template
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:app/features/timer/timer_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -27,18 +26,21 @@ class MainApp extends StatelessWidget {
       providers: [ChangeNotifierProvider(create: (_) => TimerService())],
 
       child: MaterialApp(
-        title: 'ScrollyTask',
         debugShowCheckedModeBanner: false,
+
         theme: ThemeData(
+          brightness: Brightness.light,
           useMaterial3: true,
-          textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
-          scaffoldBackgroundColor: Colors.white,
-          appBarTheme: const AppBarTheme(
-            systemOverlayStyle: SystemUiOverlayStyle.dark,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-          ),
+          textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
         ),
+
+        darkTheme: ThemeData(
+          brightness: Brightness.dark,
+          useMaterial3: true,
+          textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+        ),
+
+        themeMode: ThemeMode.system,
         home: const MainScreen(),
       ),
     );
