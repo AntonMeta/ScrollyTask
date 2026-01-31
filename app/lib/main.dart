@@ -1,6 +1,7 @@
 // Scrolly Recruitment Kit - Flutter coding challenge template
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:app/features/timer/timer_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -9,6 +10,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   await Hive.initFlutter();
 

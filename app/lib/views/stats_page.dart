@@ -3,11 +3,12 @@ import 'package:app/constants/app_color.dart';
 import 'package:app/constants/app_design.dart';
 import 'package:app/constants/app_strings.dart';
 import 'package:app/constants/app_text_styles.dart';
+import 'package:app/features/timer/timer_service.dart';
+import 'package:app/features/utils/ui_scaler.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:app/features/timer/timer_service.dart';
 
 class StatsPage extends StatelessWidget {
   const StatsPage({super.key});
@@ -15,59 +16,66 @@ class StatsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final timerService = context.watch<TimerService>();
-
     final int streak = timerService.currentStreak;
     final int totalDays = timerService.totalActiveDays;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     context.read<TimerService>().debugAddFakeHistory();
-      //   },
-      //   backgroundColor: Colors.red,
-      //   child: const Icon(Icons.bug_report),
-      // ),
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, 90),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppStrings.statsTitle,
-                style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColor.textPrimary(context),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppDesign.elementPadding.s(context),
+              AppDesign.elementPadding.s(context),
+              AppDesign.elementPadding.s(context),
+              90.s(context),
+            ),
+            child: Column(
+              children: [
+                /// TITLE
+                Text(
+                  AppStrings.statsTitle,
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: AppColor.textPrimary(context),
+                    fontSize: 34.s(context),
+                  ),
                 ),
-              ),
-              Spacer(flex: 1),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildCard(
-                    context,
-                    darkTheme: true,
-                    svg: AppAssets.iconFlame,
-                    value: "$streak",
-                    label: AppStrings.streakLabel,
-                    subLabel: "$totalDays days overall",
-                  ),
-                  SizedBox(width: 20),
-                  _buildCard(
-                    context,
-                    svg: AppAssets.iconTime,
-                    value: formatSecondsToText(timerService.dailySeconds),
-                    label: AppStrings.currentFocusLabel,
-                    subLabel:
-                        "${formatGrandTotal(timerService.totalSeconds)} overall",
-                  ),
-                ],
-              ),
-              Spacer(flex: 1),
 
-              const _WeeklyChartSection(),
-              Spacer(flex: 1),
-            ],
+                SizedBox(height: 25.s(context)),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    /// STREAK CARD
+                    _buildCard(
+                      context,
+                      darkTheme: true,
+                      svg: AppAssets.iconFlame,
+                      value: "$streak",
+                      label: AppStrings.streakLabel,
+                      subLabel: "$totalDays days overall",
+                    ),
+                    SizedBox(width: 15.s(context)),
+
+                    ///CURR FOCUS CARD
+                    _buildCard(
+                      context,
+                      svg: AppAssets.iconTime,
+                      value: formatSecondsToText(timerService.dailySeconds),
+                      label: AppStrings.currentFocusLabel,
+                      subLabel:
+                          "${formatGrandTotal(timerService.totalSeconds)} overall",
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 25.s(context)),
+
+                const _WeeklyChartSection(),
+
+                SizedBox(height: 10.s(context)),
+              ],
+            ),
           ),
         ),
       ),
@@ -82,85 +90,115 @@ class StatsPage extends StatelessWidget {
     required String label,
     required String subLabel,
   }) {
+    /// local styles
+    final double labelSize = 15.s(context);
+    final double valueSize = 26.s(context);
+    final double pillTextSize = 11.s(context);
+
     return Expanded(
       child: Container(
-        height: 190,
-        padding: const EdgeInsets.all(12),
+        height: AppDesign.statsCardHeight.s(context),
+        padding: EdgeInsets.all(12.s(context)),
         decoration: BoxDecoration(
           color: darkTheme
               ? AppColor.primary(context)
               : AppColor.statsCardLight(context),
           border: AppColor.getAdaptiveBorder(context),
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(AppDesign.radiusCard.s(context)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          spacing: 20,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              padding: EdgeInsets.all(7),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 12,
-                children: [
-                  Text(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 8.s(context)),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
                     label,
-                    style: darkTheme
-                        ? AppTextStyles.darkStatsLabel.copyWith(
-                            color: AppColor.statsCardDarkText(context),
-                          )
-                        : AppTextStyles.lightStatsLabel.copyWith(
-                            color: AppColor.textPrimary(context),
-                          ),
+                    style:
+                        (darkTheme
+                                ? AppTextStyles.darkStatsLabel.copyWith(
+                                    color: AppColor.statsCardDarkText(context),
+                                  )
+                                : AppTextStyles.lightStatsLabel.copyWith(
+                                    color: AppColor.textPrimary(context),
+                                  ))
+                            .copyWith(fontSize: labelSize),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SvgPicture.asset(
-                        svg,
-                        width: AppDesign.svgDim,
-                        height: AppDesign.svgDim,
-                        colorFilter: ColorFilter.mode(
-                          darkTheme
-                              ? AppColor.statsCardDarkText(context)
-                              : AppColor.textPrimary(context),
-                          BlendMode.srcIn,
+                ),
+                SizedBox(height: 10.s(context)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SvgPicture.asset(
+                      svg,
+                      width: AppDesign.svgDim.s(context),
+                      height: AppDesign.svgDim.s(context),
+                      colorFilter: ColorFilter.mode(
+                        darkTheme
+                            ? AppColor.statsCardDarkText(context)
+                            : AppColor.textPrimary(context),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    SizedBox(width: 5.s(context)),
+                    Expanded(
+                      child: FittedBox(
+                        alignment: Alignment.centerLeft,
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          value,
+                          style:
+                              (darkTheme
+                                      ? AppTextStyles.darkStatsVal.copyWith(
+                                          color: AppColor.statsCardDarkText(
+                                            context,
+                                          ),
+                                        )
+                                      : AppTextStyles.lightStatsVal.copyWith(
+                                          color: AppColor.textPrimary(context),
+                                        ))
+                                  .copyWith(fontSize: valueSize),
                         ),
                       ),
-                      SizedBox(width: 5),
-                      Text(
-                        value,
-                        style: darkTheme
-                            ? AppTextStyles.darkStatsVal.copyWith(
-                                color: AppColor.statsCardDarkText(context),
-                              )
-                            : AppTextStyles.lightStatsVal.copyWith(
-                                color: AppColor.textPrimary(context),
-                              ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
+
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: 8.s(context),
+                vertical: 6.s(context),
+              ),
               decoration: BoxDecoration(
                 color: darkTheme
                     ? AppColor.lightPill(context)
                     : AppColor.darkPill(context),
-                borderRadius: BorderRadius.circular(11.5),
+                borderRadius: BorderRadius.circular(
+                  AppDesign.radiusPill.s(context),
+                ),
               ),
+              alignment: Alignment.center,
               child: Text(
                 subLabel,
-                style: darkTheme
-                    ? AppTextStyles.darkPill.copyWith(
-                        color: AppColor.textSecondary(context),
-                      )
-                    : AppTextStyles.lightPill.copyWith(
-                        color: AppColor.textPrimary(context),
-                      ),
+                style:
+                    (darkTheme
+                            ? AppTextStyles.darkPill.copyWith(
+                                color: AppColor.textSecondary(context),
+                              )
+                            : AppTextStyles.lightPill.copyWith(
+                                color: AppColor.textPrimary(context),
+                              ))
+                        .copyWith(fontSize: pillTextSize),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -177,19 +215,16 @@ class _WeeklyChartSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final timerService = context.watch<TimerService>();
     final oldestDate = timerService.getOldestEntryDate();
-
     int pageCount = 1;
 
     if (oldestDate != null) {
       final now = DateTime.now();
-
       final currentMondayDate = now.subtract(Duration(days: now.weekday - 1));
       final currentMonday = DateTime(
         currentMondayDate.year,
         currentMondayDate.month,
         currentMondayDate.day,
       );
-
       final oldestMondayDate = oldestDate.subtract(
         Duration(days: oldestDate.weekday - 1),
       );
@@ -198,25 +233,20 @@ class _WeeklyChartSection extends StatelessWidget {
         oldestMondayDate.month,
         oldestMondayDate.day,
       );
-
       final differenceInDays = currentMonday.difference(oldestMonday).inDays;
-
-      if (differenceInDays >= 0) {
-        final weeksDiff = (differenceInDays / 7).round();
-        pageCount = weeksDiff + 1;
-      }
+      if (differenceInDays >= 0) pageCount = (differenceInDays / 7).round() + 1;
     }
-    return Container(
-      height: 328,
-      width: double.infinity,
 
+    return Container(
+      height: AppDesign.statsChartHeight.s(context),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: AppColor.statsCardLight(context),
-        borderRadius: BorderRadius.circular(47),
+        borderRadius: BorderRadius.circular(AppDesign.radiusChart.s(context)),
         border: AppColor.getAdaptiveBorder(context),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(47),
+        borderRadius: BorderRadius.circular(AppDesign.radiusChart.s(context)),
         child: PageView.builder(
           reverse: true,
           itemCount: pageCount,
@@ -235,7 +265,6 @@ class _WeeklyChartSection extends StatelessWidget {
 
 class _SingleWeekPage extends StatefulWidget {
   final int weekOffset;
-
   const _SingleWeekPage({required this.weekOffset});
 
   @override
@@ -252,30 +281,28 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
     'Sat',
     'Sun',
   ];
-
   int touchedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
     final timerService = context.watch<TimerService>();
-
     final now = DateTime.now();
-    final currentViewDate = now.subtract(Duration(days: 7 * widget.weekOffset));
-    final startOfWeek = currentViewDate.subtract(
-      Duration(days: currentViewDate.weekday - 1),
-    );
+    final startOfWeek = now
+        .subtract(Duration(days: 7 * widget.weekOffset))
+        .subtract(
+          Duration(
+            days:
+                now.subtract(Duration(days: 7 * widget.weekOffset)).weekday - 1,
+          ),
+        );
     final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    final weeklyData = timerService.getWeeklyData(startOfWeek);
+    final averageVal = timerService.getWeeklyAverage(startOfWeek);
+    final daysWithDataCount = timerService.getDaysCountWithData(startOfWeek);
 
-    final List<int> weeklyData = timerService.getWeeklyData(startOfWeek);
-    final double averageVal = timerService.getWeeklyAverage(startOfWeek);
-
-    final int daysWithDataCount = timerService.getDaysCountWithData(
-      startOfWeek,
-    );
-
-    final bool isCurrentWeek = widget.weekOffset == 0;
-    final bool isLastWeek = widget.weekOffset == 1;
-
+    ///title logic
+    final isCurrentWeek = widget.weekOffset == 0;
+    final isLastWeek = widget.weekOffset == 1;
     String titleText;
     if (isCurrentWeek == isLastWeek) {
       if (touchedIndex != -1) {
@@ -292,23 +319,15 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
       titleText = "Average focus time\n${isCurrentWeek ? "This" : "Last"} week";
     }
 
-    final String currentValue = touchedIndex == -1
+    final currentValue = touchedIndex == -1
         ? formatSecondsToText(averageVal.floor())
         : formatSecondsToText(weeklyData[touchedIndex]);
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          touchedIndex = -1;
-        });
-      },
+      onTap: () => setState(() => touchedIndex = -1),
       behavior: HitTestBehavior.translucent,
       child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColor.statsCardLight(context),
-          borderRadius: BorderRadius.circular(47),
-        ),
+        padding: EdgeInsets.all(20.s(context)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -316,19 +335,19 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
               titleText,
               style: AppTextStyles.chartLabel.copyWith(
                 color: AppColor.textPrimary(context),
+                fontSize: 18.s(context),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.s(context)),
             Text(
               currentValue,
-              style: AppTextStyles.chartVal
-                ..copyWith(color: AppColor.textPrimary(context)),
+              style: AppTextStyles.chartVal.copyWith(
+                color: AppColor.textPrimary(context),
+                fontSize: 22.s(context),
+              ),
             ),
-
-            const SizedBox(height: 25),
-
-            SizedBox(
-              height: 170,
+            SizedBox(height: 25.s(context)),
+            Expanded(
               child: BarChart(
                 BarChartData(
                   extraLinesData: ExtraLinesData(
@@ -337,14 +356,18 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
                         HorizontalLine(
                           y: averageVal / 60,
                           color: AppColor.textPrimary(context),
-                          strokeWidth: 2,
+                          strokeWidth: 2.s(context),
                           dashArray: [5, 5],
                           label: HorizontalLineLabel(
                             show: true,
                             alignment: Alignment.topLeft,
-                            padding: EdgeInsets.only(bottom: 5, left: 0),
+                            padding: EdgeInsets.only(
+                              bottom: 5.s(context),
+                              left: 0,
+                            ),
                             style: AppTextStyles.chartAvg.copyWith(
                               color: AppColor.textPrimary(context),
+                              fontSize: 11.s(context),
                             ),
                             labelResolver: (line) => "avg",
                           ),
@@ -355,12 +378,10 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipItem: (_, _, _, _) => null,
                     ),
-                    touchCallback: (FlTouchEvent event, barTouchResponse) {
+                    touchCallback: (event, response) {
                       setState(() {
-                        if (barTouchResponse != null &&
-                            barTouchResponse.spot != null) {
-                          touchedIndex =
-                              barTouchResponse.spot!.touchedBarGroupIndex;
+                        if (response?.spot != null) {
+                          touchedIndex = response!.spot!.touchedBarGroupIndex;
                         } else {
                           touchedIndex = -1;
                         }
@@ -383,16 +404,17 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 30,
+                        reservedSize: 30.s(context),
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
                           if (index >= 0 && index < weekDays.length) {
                             return Padding(
-                              padding: EdgeInsets.only(top: 10.0),
+                              padding: EdgeInsets.only(top: 10.0.s(context)),
                               child: Text(
                                 weekDays[index],
                                 style: AppTextStyles.chartWeekday.copyWith(
                                   color: AppColor.textPrimary(context),
+                                  fontSize: 12.s(context),
                                 ),
                               ),
                             );
@@ -411,8 +433,8 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
                           color: index == touchedIndex
                               ? AppColor.chartBar(context)
                               : AppColor.untouchedBar(context),
-                          width: 33,
-                          borderRadius: BorderRadius.circular(10),
+                          width: 30.s(context),
+                          borderRadius: BorderRadius.circular(10.s(context)),
                         ),
                       ],
                     );
@@ -426,57 +448,39 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
     );
   }
 
-  String _getFullDayName(int index) {
-    const days = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ];
-    return days[index];
-  }
+  String _getFullDayName(int index) => [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ][index];
 
   String _formatDateRange(DateTime start, DateTime end) {
-    String format(DateTime d) {
-      final day = d.day.toString().padLeft(2, '0');
-      final month = d.month.toString().padLeft(2, '0');
-      return "$day.$month";
-    }
-
-    return "${format(start)}-${format(end)}";
+    String f(DateTime d) =>
+        "${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}";
+    return "${f(start)}-${f(end)}";
   }
 }
 
+/// formatting funcs
 String formatSecondsToText(int totalSeconds) {
-  if (totalSeconds > 0 && totalSeconds < 60) {
-    return "<1m";
-  }
-
+  if (totalSeconds > 0 && totalSeconds < 60) return "<1m";
   final int totalMinutes = totalSeconds ~/ 60;
-
-  if (totalMinutes < 60) {
-    return "${totalMinutes}m";
-  } else {
-    final int hours = totalMinutes ~/ 60;
-    final int minutes = totalMinutes % 60;
-
-    if (minutes == 0) {
-      return "${hours}h";
-    }
-    return "${hours}h ${minutes}m";
-  }
+  if (totalMinutes < 60) return "${totalMinutes}m";
+  final int hours = totalMinutes ~/ 60;
+  final int minutes = totalMinutes % 60;
+  if (minutes == 0) return "${hours}h";
+  return "${hours}h ${minutes}m";
 }
 
 String formatGrandTotal(int totalSeconds) {
   if (totalSeconds == 0) return "0m";
-
   final int days = totalSeconds ~/ (24 * 3600);
   final int hours = (totalSeconds % (24 * 3600)) ~/ 3600;
   final int minutes = (totalSeconds % 3600) ~/ 60;
-
   if (days > 0) {
     return "${days}d ${hours}h ${minutes}m";
   } else if (hours > 0) {

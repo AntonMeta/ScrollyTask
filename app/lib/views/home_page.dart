@@ -1,4 +1,5 @@
 import 'package:app/constants/app_strings.dart';
+import 'package:app/features/utils/ui_scaler.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -18,32 +19,44 @@ class HomePage extends StatelessWidget {
     final isDark = AppColor.isDarkMode(context);
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 700;
+    final isVerySmallHeight = screenHeight < 700;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, 90),
+          padding: EdgeInsets.fromLTRB(
+            AppDesign.elementPadding.s(context),
+            AppDesign.elementPadding.s(context),
+            AppDesign.elementPadding.s(context),
+            90,
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              /// TITLE
               Text(
                 AppStrings.homeTitle,
                 style: AppTextStyles.titleLarge.copyWith(
                   color: AppColor.textPrimary(context),
+                  fontSize: 36.s(context),
                 ),
               ),
+
               const Spacer(flex: 2),
+
+              /// TIMER CARD
               Container(
-                constraints: const BoxConstraints(minHeight: 120),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 15,
-                  horizontal: 25,
+                constraints: BoxConstraints(
+                  minHeight: AppDesign.timerCardMinHeight.s(context),
+                ),
+                padding: EdgeInsets.symmetric(
+                  vertical: 15.s(context),
+                  horizontal: 25.s(context),
                 ),
                 decoration: BoxDecoration(
                   color: AppColor.cardSurface(context),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(16.s(context)),
                   border: AppColor.getAdaptiveBorder(context),
                 ),
                 alignment: Alignment.centerLeft,
@@ -55,31 +68,37 @@ class HomePage extends StatelessWidget {
                       children: [
                         SvgPicture.asset(
                           AppAssets.iconTime,
-                          width: AppDesign.svgDim,
-                          height: AppDesign.svgDim,
-                          colorFilter: ColorFilter.mode(
+                          width: AppDesign.svgDim.s(context),
+                          height: AppDesign.svgDim.s(context),
+                          colorFilter: const ColorFilter.mode(
                             AppColor.secondary,
                             BlendMode.srcIn,
                           ),
                         ),
-                        SizedBox(width: 5),
+                        SizedBox(width: 5.s(context)),
                         Text(
                           AppStrings.homeLabel,
-                          style: AppTextStyles.homeLabel,
+                          style: AppTextStyles.homeLabel.copyWith(
+                            fontSize: 18.s(context),
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 5),
+                    SizedBox(height: 5.s(context)),
                     Text(
                       timerService.formattedTime,
                       style: AppTextStyles.homeTimer.copyWith(
                         color: AppColor.secondary,
+                        fontSize: 40.s(context),
                       ),
                     ),
                   ],
                 ),
               ),
+
               const Spacer(flex: 1),
+
+              /// SCROLLY PIC
               GestureDetector(
                 onTap: () => timerService.toggleTimer(),
                 child: AnimatedSwitcher(
@@ -90,26 +109,29 @@ class HomePage extends StatelessWidget {
                       ScaleTransition(scale: animation, child: child),
                   child: NeonClipper(
                     key: ValueKey(timerService.isRunning),
-
                     color: timerService.isRunning
                         ? AppColor.neonBorder
                         : AppColor.redNeon,
-
                     blurRadius: 7.0,
                     spread: 0.1,
                     child: Image.asset(
                       timerService.isRunning
                           ? AppAssets.scrollyHappy
                           : AppAssets.scrollyAngry,
-                      height: isSmallScreen ? 180 : 240,
+                      height: isVerySmallHeight
+                          ? AppDesign.scrollyHeightSmall.s(context)
+                          : AppDesign.scrollyHeightBig.s(context),
                     ),
                   ),
                 ),
               ),
-              Spacer(flex: 1),
+
+              const Spacer(flex: 1),
+
+              /// FOCUS BUTTON
               SizedBox(
-                width: 160,
-                height: 41,
+                width: AppDesign.buttonWidth.s(context),
+                height: AppDesign.buttonHeight.s(context),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColor.cardSurface(context),
@@ -117,7 +139,9 @@ class HomePage extends StatelessWidget {
                         ? const BorderSide(color: Colors.white24)
                         : BorderSide.none,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(
+                        AppDesign.radiusButton.s(context),
+                      ),
                     ),
                   ),
                   onPressed: () => timerService.toggleTimer(),
@@ -125,10 +149,13 @@ class HomePage extends StatelessWidget {
                     timerService.isRunning
                         ? AppStrings.tapToUnfocus
                         : AppStrings.tapToFocus,
-                    style: AppTextStyles.homeButton,
+                    style: AppTextStyles.homeButton.copyWith(
+                      fontSize: 14.s(context),
+                    ),
                   ),
                 ),
               ),
+
               const Spacer(flex: 1),
             ],
           ),
