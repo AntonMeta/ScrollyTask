@@ -50,7 +50,6 @@ class TimerService extends ChangeNotifier
   @override
   void onAppBackgrounded() {
     _saveCurrentTick();
-    print("🌙 App backgrounded. Czas zapisany.");
   }
 
   @override
@@ -63,7 +62,6 @@ class TimerService extends ChangeNotifier
         if (now.difference(lastTick).inSeconds > 2) {
           _distributeTimeAcrossDays(lastTick, now);
           _saveCurrentTick();
-          print("☀️ App resumed. Czas zsynchronizowany.");
         }
       }
     }
@@ -79,9 +77,6 @@ class TimerService extends ChangeNotifier
 
       if (now.isAfter(lastTick)) {
         _distributeTimeAcrossDays(lastTick, now);
-
-        final diff = now.difference(lastTick).inSeconds;
-        print("🔥 Sesja odzyskana! Dodano $diff sekund (z obsługą północy).");
       }
 
       startTimer();
@@ -275,32 +270,6 @@ class TimerService extends ChangeNotifier
     return count;
   }
 
-  void debugAddFakeHistory() {
-    _box.clear();
-
-    final now = DateTime.now();
-
-    void addDay(int daysAgo, int minutes) {
-      final date = now.subtract(Duration(days: daysAgo));
-      final key = _getDateKey(date);
-      _box.put(key, minutes * 60);
-    }
-
-    addDay(0, 68);
-    addDay(1, 60);
-
-    addDay(3, 90);
-    addDay(4, 100);
-
-    addDay(6, 40);
-    addDay(7, 55);
-
-    addDay(9, 110);
-    addDay(10, 24 * 60 - 1);
-    addDay(11, 110);
-    addDay(12, 90);
-
-    print("✅ Fake dane dodane! Zrestartuj apkę.");
-    notifyListeners();
-  }
+  //used with data seeder
+  void forceNotify() => notifyListeners();
 }

@@ -4,6 +4,7 @@ class AppStrings {
   static const String homeLabel = 'Focus time today';
   static const String tapToFocus = 'Tap to focus';
   static const String tapToUnfocus = 'Tap to unfocus';
+  static const String seedNot = '🌱 Test data generated! Check Statistics.';
 
   /// stats page
   static const String statsTitle = 'statistics';

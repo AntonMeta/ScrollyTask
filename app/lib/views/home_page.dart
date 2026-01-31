@@ -1,14 +1,15 @@
 import 'package:app/constants/app_strings.dart';
-import 'package:app/features/utils/ui_scaler.dart'; 
+import 'package:app/features/utils/ui_scaler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:app/features/timer/timer_service.dart';
-import '../constants/app_text_styles.dart';
-import '../constants/app_color.dart';
-import '../constants/app_assets.dart';
-import '../constants/app_design.dart';
-import '../widgets/neon_clipper.dart';
+import 'package:app/constants/app_text_styles.dart';
+import 'package:app/constants/app_color.dart';
+import 'package:app/constants/app_assets.dart';
+import 'package:app/constants/app_design.dart';
+import 'package:app/widgets/neon_clipper.dart';
+import 'package:app/features/utils/data_seeder.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -34,18 +35,38 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              /// TITLE
-              Text(
-                AppStrings.homeTitle,
-                style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColor.textPrimary(context),
-                  fontSize: 36.s(context),
+              // TITLE
+              GestureDetector(
+                //data seeder
+                onLongPress: () async {
+                  await DataSeeder.seedHistory();
+
+                  if (context.mounted) {
+                    context.read<TimerService>().forceNotify();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          AppStrings.seedNot,
+                        ),
+                        duration: Duration(seconds: 2),
+                        backgroundColor: AppColor.redNeon,
+                      ),
+                    );
+                  }
+                },
+                child: Text(
+                  AppStrings.homeTitle,
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: AppColor.textPrimary(context),
+                    fontSize: 36.s(context),
+                  ),
                 ),
               ),
 
               const Spacer(flex: 2),
 
-              /// TIMER CARD
+              // TIMER CARD
               Container(
                 constraints: BoxConstraints(
                   minHeight: AppDesign.timerCardMinHeight.s(context),
@@ -98,7 +119,7 @@ class HomePage extends StatelessWidget {
 
               const Spacer(flex: 1),
 
-              /// SCROLLY PIC
+              // SCROLLY PIC
               GestureDetector(
                 onTap: () => timerService.toggleTimer(),
                 child: AnimatedSwitcher(
@@ -128,7 +149,7 @@ class HomePage extends StatelessWidget {
 
               const Spacer(flex: 1),
 
-              /// FOCUS BUTTON
+              // FOCUS BUTTON
               SizedBox(
                 width: AppDesign.buttonWidth.s(context),
                 height: AppDesign.buttonHeight.s(context),

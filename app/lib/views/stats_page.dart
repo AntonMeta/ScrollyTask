@@ -32,7 +32,7 @@ class StatsPage extends StatelessWidget {
             ),
             child: Column(
               children: [
-                /// TITLE
+                // TITLE
                 Text(
                   AppStrings.statsTitle,
                   style: AppTextStyles.titleLarge.copyWith(
@@ -46,7 +46,7 @@ class StatsPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    /// STREAK CARD
+                    // STREAK CARD
                     _buildCard(
                       context,
                       darkTheme: true,
@@ -57,7 +57,7 @@ class StatsPage extends StatelessWidget {
                     ),
                     SizedBox(width: 15.s(context)),
 
-                    ///CURR FOCUS CARD
+                    //CURR FOCUS CARD
                     _buildCard(
                       context,
                       svg: AppAssets.iconTime,
@@ -90,7 +90,7 @@ class StatsPage extends StatelessWidget {
     required String label,
     required String subLabel,
   }) {
-    /// local styles
+    // local styles
     final double labelSize = 15.s(context);
     final double valueSize = 26.s(context);
     final double pillTextSize = 11.s(context);
@@ -300,7 +300,7 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
     final averageVal = timerService.getWeeklyAverage(startOfWeek);
     final daysWithDataCount = timerService.getDaysCountWithData(startOfWeek);
 
-    ///title logic
+    //title logic
     final isCurrentWeek = widget.weekOffset == 0;
     final isLastWeek = widget.weekOffset == 1;
     String titleText;
@@ -465,7 +465,7 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
   }
 }
 
-/// formatting funcs
+// formatting funcs
 String formatSecondsToText(int totalSeconds) {
   if (totalSeconds > 0 && totalSeconds < 60) return "<1m";
   final int totalMinutes = totalSeconds ~/ 60;
