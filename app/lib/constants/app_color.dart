@@ -9,4 +9,5 @@ class AppColor {
   static const Color pill = Color(0xFFD1B888);
   static const Color chartWeekday = Color(0xFF545454);
   static const Color chartBar = Color(0xFF51697A);
+  static const Color navBar = Color(0xFFBFAC85);
 }

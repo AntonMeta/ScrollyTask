@@ -8,6 +8,16 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     color: AppColor.primary,
   );
+  static TextStyle navBarActive = GoogleFonts.poppins(
+    fontSize: 10.65,
+    fontWeight: FontWeight.w500,
+    color: AppColor.navBar,
+  );
+  static TextStyle navBar = GoogleFonts.poppins(
+    fontSize: 10.65,
+    fontWeight: FontWeight.w500,
+    color: AppColor.secondary,
+  );
 
   ///home page
   static TextStyle homeTimer = GoogleFonts.poppins(
