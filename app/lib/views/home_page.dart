@@ -16,10 +16,10 @@ class HomePage extends StatelessWidget {
     final timerService = context.watch<TimerService>();
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColor.pageBg,
       body: Center(
         child: Column(
-          spacing: AppDesign.homeSpacing,
+          spacing: AppDesign.mainSpacing,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
@@ -31,12 +31,12 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Container(
-              width: AppDesign.timerCardWidth,
-              height: AppDesign.timerCardHeight,
+              width: 340,
+              height: 120,
               padding: EdgeInsets.symmetric(vertical: 10, horizontal: 25),
               decoration: BoxDecoration(
                 color: AppColor.primary,
-                borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+                borderRadius: BorderRadius.circular(16),
               ),
               alignment: Alignment.centerLeft,
               child: Column(
@@ -48,8 +48,8 @@ class HomePage extends StatelessWidget {
                     children: [
                       SvgPicture.asset(
                         AppAssets.iconTime,
-                        width: 26,
-                        height: 26,
+                        width: AppDesign.svgDim,
+                        height: AppDesign.svgDim,
                         colorFilter: const ColorFilter.mode(
                           AppColor.secondary,
                           BlendMode.srcIn,
@@ -86,13 +86,13 @@ class HomePage extends StatelessWidget {
               ),
             ),
             SizedBox(
-              width: AppDesign.focusButtonWidth,
-              height: AppDesign.focusButtonHeight,
+              width: 150,
+              height: 41,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColor.primary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 onPressed: () => timerService.toggleTimer(),

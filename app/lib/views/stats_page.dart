@@ -1,5 +1,11 @@
+import 'package:app/constants/app_assets.dart';
+import 'package:app/constants/app_color.dart';
+import 'package:app/constants/app_design.dart';
+import 'package:app/constants/app_strings.dart';
+import 'package:app/constants/app_text_styles.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:app/features/timer/timer_service.dart';
 
@@ -14,16 +20,7 @@ class StatsPage extends StatelessWidget {
     final int totalDays = timerService.totalActiveDays;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text(
-          'Stats Page',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      backgroundColor: AppColor.pageBg,
       // floatingActionButton: FloatingActionButton(
       //   onPressed: () {
       //     context.read<TimerService>().debugAddFakeHistory();
@@ -31,36 +28,39 @@ class StatsPage extends StatelessWidget {
       //   backgroundColor: Colors.red,
       //   child: const Icon(Icons.bug_report),
       // ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      body: Center(
         child: Column(
+          spacing: AppDesign.mainSpacing,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
+            Container(
+              alignment: Alignment.center,
+              child: Text(
+                AppStrings.statsTitle,
+                style: AppTextStyles.titleLarge,
+              ),
+            ),
 
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
-                  child: _buildCard(
-                    icon: Icons.local_fire_department,
-                    value: "$streak",
-                    label: "Current\ndays streak",
-                    subLabel: "$totalDays days overall",
-                  ),
+                _buildCard(
+                  darkTheme: true,
+                  svg: AppAssets.iconFlame,
+                  value: "$streak",
+                  label: AppStrings.streakLabel,
+                  subLabel: "$totalDays days overall",
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildCard(
-                    icon: Icons.access_time_filled,
-                    value: formatSecondsToText(timerService.dailySeconds),
-                    label: "Focus\ntime today",
-                    subLabel:
-                        "${formatGrandTotal(timerService.totalSeconds)} overall",
-                  ),
+
+                _buildCard(
+                  svg: AppAssets.iconTime,
+                  value: formatSecondsToText(timerService.dailySeconds),
+                  label: AppStrings.currentFocusLabel,
+                  subLabel:
+                      "${formatGrandTotal(timerService.totalSeconds)} overall",
                 ),
               ],
             ),
-
-            const SizedBox(height: 40),
 
             const _WeeklyChartSection(),
           ],
@@ -70,70 +70,74 @@ class StatsPage extends StatelessWidget {
   }
 
   Widget _buildCard({
-    required IconData icon,
+    bool darkTheme = false,
+    required String svg,
     required String value,
     required String label,
     required String subLabel,
   }) {
     return Container(
       height: 190,
-      padding: const EdgeInsets.all(16),
+      width: 165,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange.shade100,
+        color: darkTheme ? AppColor.primary : AppColor.lightCard,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
+        spacing: 20,
         children: [
           Container(
             padding: EdgeInsets.all(7),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 12,
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 19,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: darkTheme
+                      ? AppTextStyles.darkStatsLabel
+                      : AppTextStyles.lightStatsLabel,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Icon(icon, size: 30),
+                    SvgPicture.asset(
+                      svg,
+                      width: AppDesign.svgDim,
+                      height: AppDesign.svgDim,
+                      colorFilter: ColorFilter.mode(
+                        darkTheme ? AppColor.secondary : AppColor.primary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
                     SizedBox(width: 5),
                     Text(
                       value,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                      style: darkTheme
+                          ? AppTextStyles.darkStatsVal
+                          : AppTextStyles.lightStatsVal,
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: darkTheme ? AppColor.primary : AppColor.pill,
               borderRadius: BorderRadius.circular(11.5),
             ),
             child: Text(
               subLabel,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
+              style: darkTheme
+                  ? AppTextStyles.darkPill
+                  : AppTextStyles.lightPill,
             ),
           ),
-          const SizedBox(height: 4),
         ],
       ),
     );
@@ -178,8 +182,9 @@ class _WeeklyChartSection extends StatelessWidget {
     }
     return Container(
       height: 328,
+      width: 360,
       decoration: BoxDecoration(
-        color: Colors.orange.shade100,
+        color: AppColor.lightCard,
         borderRadius: BorderRadius.circular(47),
       ),
       child: ClipRRect(
@@ -273,34 +278,20 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.orange.shade100,
+          color: AppColor.lightCard,
           borderRadius: BorderRadius.circular(47),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              titleText,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 16,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
+            Text(titleText, style: AppTextStyles.chartLabel),
             const SizedBox(height: 8),
-            Text(
-              currentValue,
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
+            Text(currentValue, style: AppTextStyles.chartVal),
 
             const SizedBox(height: 32),
 
             SizedBox(
-              height: 145,
+              height: 170,
               child: BarChart(
                 BarChartData(
                   extraLinesData: ExtraLinesData(
@@ -315,11 +306,7 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
                             show: true,
                             alignment: Alignment.topLeft,
                             padding: const EdgeInsets.only(bottom: 5, left: 0),
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                            style: AppTextStyles.chartAvg,
                             labelResolver: (line) => "avg",
                           ),
                         ),
@@ -365,13 +352,7 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
                               padding: const EdgeInsets.only(top: 10.0),
                               child: Text(
                                 weekDays[index],
-                                style: TextStyle(
-                                  color: index == touchedIndex
-                                      ? Colors.black
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 12,
-                                ),
+                                style: AppTextStyles.chartWeekday,
                               ),
                             );
                           }
@@ -387,8 +368,8 @@ class _SingleWeekPageState extends State<_SingleWeekPage> {
                         BarChartRodData(
                           toY: weeklyData[index] / 60,
                           color: index == touchedIndex
-                              ? Colors.black
-                              : Colors.grey,
+                              ? AppColor.chartBar
+                              : AppColor.pill,
                           width: 33,
                           borderRadius: BorderRadius.circular(10),
                         ),
